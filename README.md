@@ -1,4 +1,4 @@
-# Blackjack
+# Blackjack game
 
 A command-line game of blackjack between a player and a daealer, written in TypeScript. The deck is fetched as JSON over HTTP, one round is played, and the result is printed.
 
