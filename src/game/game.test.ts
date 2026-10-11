@@ -11,7 +11,7 @@ const play = (deck: string) => createStandardBlackjackGame().play(cards(deck));
 describe("standard game", () => {
   it.each([
     ["dealer wins when both have blackjack", "HA,HK,SA,SQ", "Dealer"],
-    ["player wins with only blackjack", "HA,HK,S9,S8", "Ivar"],
+    ["player wins with only blackjack", "HA,HK,S9,S8", "Player"],
     ["dealer wins with only blackjack", "H9,H8,SA,SQ", "Dealer"],
   ])("%s", (_description, deck, winner) => {
     const r = play(deck);
@@ -21,7 +21,7 @@ describe("standard game", () => {
   });
   it.each([
     ["player", "HA,DA,S9,S8", "Dealer"],
-    ["dealer", "H10,H7,SA,CA", "Ivar"],
+    ["dealer", "H10,H7,SA,CA", "Player"],
   ])("treats an initial two-ace %s hand as a bust", (side, deck, winner) => {
     const r = play(deck);
     const hand = side === "player" ? r.player : r.dealer;
@@ -55,7 +55,7 @@ describe("standard game", () => {
   });
   it("player wins when dealer busts", () => {
     const r = play("H10,H7,S10,S6,SK");
-    expect(r.winner).toBe("Ivar");
+    expect(r.winner).toBe("Player");
     expect(score(r.dealer.cards)).toBe(26);
   });
   it("throws if the deck runs out", () => {
@@ -74,7 +74,7 @@ describe("standard game", () => {
     expect([
       game.play(cards("HA,HK,S9,S8")).winner,
       game.play(cards("H9,H8,SA,SQ")).winner,
-    ]).toEqual(["Ivar", "Dealer"]);
+    ]).toEqual(["Player", "Dealer"]);
   });
 });
 
@@ -91,6 +91,6 @@ describe("Game with custom players", () => {
 describe("formatResult", () => {
   it("matches the required output format", () => {
     const r = play("H10,H7,S10,S6,SK");
-    expect(formatResult(r)).toBe("Winner: Ivar\nDealer | 26 | S10,S6,SK\nIvar | 17 | H10,H7");
+    expect(formatResult(r)).toBe("Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7");
   });
 });

@@ -13,7 +13,7 @@ describe("main", () => {
       new URL("https://example.com/deck"),
       expect.objectContaining({ method: "GET" }),
     );
-    expect(log).toHaveBeenCalledWith("Winner: Ivar\nDealer | 26 | S10,S6,SK\nIvar | 17 | H10,H7");
+    expect(log).toHaveBeenCalledWith("Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7");
     log.mockRestore();
   });
 

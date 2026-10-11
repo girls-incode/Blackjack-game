@@ -37,18 +37,64 @@ Suits are printed as `H`, `S`, `C`, `D`, followed by the card value as received 
 
 ## Game rules
 
-- Ivar is dealt two cards, then the Dealer is dealt two.
+- Player is dealt two cards, then the Dealer is dealt two.
 - Blackjack is 21 with exactly two cards. If both have it, the Dealer wins. If only one has it, that side wins and the round ends.
-- Otherwise Ivar draws until reaching 17 or more. Above 21 is a bust and Ivar loses, whatever the Dealer holds.
-- Then the Dealer draws until strictly ahead of Ivar or bust. The Dealer wins unless busted.
+- Otherwise Player draws until reaching 17 or more. Above 21 is a bust and Player loses, whatever the Dealer holds.
+- Then the Dealer draws until strictly ahead of Player or bust. The Dealer wins unless busted.
 - Face cards (J, Q, K) are worth 10, aces are always worth 11, and number cards are worth their number.
 
-### Example output
+### Example inputs and outputs
+
+Cards are supplied in draw order: Player's two cards, the Dealer's two cards, then any cards drawn during the round.
+
+Player blackjack:
+
+Input deck: `HA,HK,S9,S8`
 
 ```
-Winner: Ivar
-Dealer | 27 | S7,S10,CJ
-Ivar | 19 | D2,H2,C6,H9
+Winner: Player
+Dealer | 17 | S9,S8
+Player | 21 | HA,HK
+```
+
+Dealer blackjack:
+
+Input deck: `H9,H8,SA,SQ`
+
+```
+Winner: Dealer
+Dealer | 21 | SA,SQ
+Player | 17 | H9,H8
+```
+
+Both have blackjack. The project rules give the win to the Dealer:
+
+Input deck: `HA,HK,SA,SQ`
+
+```
+Winner: Dealer
+Dealer | 21 | SA,SQ
+Player | 21 | HA,HK
+```
+
+Player busts:
+
+Input deck: `H10,H6,S2,S3,HK`
+
+```
+Winner: Dealer
+Dealer | 5 | S2,S3
+Player | 26 | H10,H6,HK
+```
+
+The Dealer busts:
+
+Input deck: `H10,H7,S10,S6,SK`
+
+```
+Winner: Player
+Dealer | 26 | S10,S6,SK
+Player | 17 | H10,H7
 ```
 
 ## Project layout
