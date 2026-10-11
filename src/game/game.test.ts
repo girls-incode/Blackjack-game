@@ -9,16 +9,26 @@ import { cards } from "../testing";
 const play = (deck: string) => createStandardBlackjackGame().play(cards(deck));
 
 describe("standard game", () => {
-  it("dealer wins when both have blackjack", () => {
-    expect(play("HA,HK,SA,SQ").winner).toBe("Dealer");
-  });
-  it("player wins with only blackjack", () => {
-    const r = play("HA,HK,S9,S8");
-    expect(r.winner).toBe("Ivar");
+  it.each([
+    ["dealer wins when both have blackjack", "HA,HK,SA,SQ", "Dealer"],
+    ["player wins with only blackjack", "HA,HK,S9,S8", "Ivar"],
+    ["dealer wins with only blackjack", "H9,H8,SA,SQ", "Dealer"],
+  ])("%s", (_description, deck, winner) => {
+    const r = play(deck);
+    expect(r.winner).toBe(winner);
+    expect(r.player.cards).toHaveLength(2);
     expect(r.dealer.cards).toHaveLength(2);
   });
-  it("dealer wins with only blackjack", () => {
-    expect(play("H9,H8,SA,SQ").winner).toBe("Dealer");
+  it.each([
+    ["player", "HA,DA,S9,S8", "Dealer"],
+    ["dealer", "H10,H7,SA,CA", "Ivar"],
+  ])("treats an initial two-ace %s hand as a bust", (side, deck, winner) => {
+    const r = play(deck);
+    const hand = side === "player" ? r.player : r.dealer;
+    const otherHand = side === "player" ? r.dealer : r.player;
+    expect(r.winner).toBe(winner);
+    expect(score(hand.cards)).toBe(22);
+    expect(otherHand.cards).toHaveLength(2);
   });
   it("player busts and loses without dealer drawing", () => {
     const r = play("H10,H6,S2,S3,HK");
@@ -54,12 +64,6 @@ describe("standard game", () => {
   it("throws if the deck is empty", () => {
     expect(() => createStandardBlackjackGame().play([])).toThrow(/Deck ran out/);
   });
-  it("can finish with the minimum four-card deck", () => {
-    const r = play("HA,HK,S9,S8");
-    expect(r.winner).toBe("Ivar");
-    expect(r.player.cards).toHaveLength(2);
-    expect(r.dealer.cards).toHaveLength(2);
-  });
   it("does not mutate the input deck", () => {
     const deck = cards("H10,H7,S10,S6,SK");
     createStandardBlackjackGame().play(deck);
@@ -67,8 +71,10 @@ describe("standard game", () => {
   });
   it("can play multiple rounds with the same game instance", () => {
     const game = createStandardBlackjackGame();
-    expect(game.play(cards("HA,HK,S9,S8")).winner).toBe("Ivar");
-    expect(game.play(cards("H9,H8,SA,SQ")).winner).toBe("Dealer");
+    expect([
+      game.play(cards("HA,HK,S9,S8")).winner,
+      game.play(cards("H9,H8,SA,SQ")).winner,
+    ]).toEqual(["Ivar", "Dealer"]);
   });
 });
 

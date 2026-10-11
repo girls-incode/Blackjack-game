@@ -1,6 +1,6 @@
 # Blackjack game
 
-A command-line game of blackjack between a player and a daealer, written in TypeScript. The deck is fetched as JSON over HTTP, one round is played, and the result is printed.
+A command-line game of blackjack between a player and a dealer, written in TypeScript. The deck is fetched as JSON over HTTP, one round is played, and the result is printed.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ pnpm start                      # uses the default deck URL
 pnpm start <deck-url>           # uses the given deck URL
 ```
 
-`pnpm start` builds the project first, then runs `dist/main.js`.
+`pnpm start` builds the project first, then runs `dist/main.js`. Without a command-line URL, it uses `https://sandbox.getunleash.io/blackjack/shuffle`.
 The URL should respond to a `GET` with a JSON list of cards, e.g. `{"suit":"HEARTS","value":"5"}`.
 Suits are printed as `H`, `S`, `C`, `D`, followed by the card value as received (`S7` is the seven of spades).
 

@@ -29,4 +29,18 @@ describe("main", () => {
     );
     log.mockRestore();
   });
+
+  it("uses DECK_URL when no command-line URL is given", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const deckUrl = "https://example.com/from-env";
+    const fetchFn = fetchReplying(jsonResponse(cards("HA,HK,S9,S8")));
+
+    await run([], { DECK_URL: deckUrl }, fetchFn);
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      new URL(deckUrl),
+      expect.objectContaining({ method: "GET" }),
+    );
+    log.mockRestore();
+  });
 });

@@ -33,6 +33,6 @@ export const formatCard = (card: Card): string => `${SUIT_SYMBOLS[card.suit]}${c
 
 /** Whether `value` has a valid suit and card value; the single definition of a valid card. */
 export const isCard = (value: unknown): value is Card => {
-  const { suit, value: cardValue } = (value ?? {}) as Record<string, unknown>;
-  return SUITS.includes(suit as Suit) && VALUES.includes(cardValue as Value);
+  const { suit, value: rank } = (value ?? {}) as Record<string, unknown>;
+  return SUITS.includes(suit as Suit) && VALUES.includes(rank as Value);
 };

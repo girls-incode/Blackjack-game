@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { cardValue, formatCard, isBlackjack, isBust, isCard, score, SUITS, VALUES } from "./card";
+import { cardValue, formatCard, isBlackjack, isBust, isCard, score, SUITS, VALUES, type Card } from "./card";
 import { cards } from "../testing";
 
+const formatCases: readonly [Card, string][] = [
+  [{ suit: "SPADES", value: "7" }, "S7"],
+  [{ suit: "DIAMONDS", value: "10" }, "D10"],
+];
+
 describe("card", () => {
-  it("values face cards 10, aces 11, numbers face value", () => {
-    expect(score(cards("HJ,CQ,SK"))).toBe(30);
-    expect(score(cards("HA,D9"))).toBe(20);
-    expect(score(cards("H2,C10"))).toBe(12);
+  it.each([
+    ["face cards", "HJ,CQ,SK", 30],
+    ["aces", "HA,D9", 20],
+    ["number cards", "H2,C10", 12],
+    ["multiple aces", "HA,DA,SK", 32],
+    ["multiple aces and a face card", "HA,DA,SA,HK", 43],
+  ])("scores %s correctly", (_description, hand, expected) => {
+    expect(score(cards(hand))).toBe(expected);
   });
-  it("values aces as 11, as required by the blackjack rules", () => {
-    expect(score(cards("HA,DA,SK"))).toBe(32);
-    expect(score(cards("HA,DA,SA,HK"))).toBe(43);
-  });
-  it("formats cards", () => {
-    expect(formatCard({ suit: "SPADES", value: "7" })).toBe("S7");
-    expect(formatCard({ suit: "DIAMONDS", value: "10" })).toBe("D10");
+  it.each(formatCases)("formats %j as %s", (card, expected) => {
+    expect(formatCard(card)).toBe(expected);
   });
   it("blackjack requires exactly two cards", () => {
     expect(isBlackjack(cards("HA,CK"))).toBe(true);
@@ -24,11 +28,13 @@ describe("card", () => {
     expect(isBust(cards("H7,C7,S7"))).toBe(false);
     expect(isBust(cards("H10,C6,S6"))).toBe(true);
   });
-  it("recognises valid cards only", () => {
-    expect(isCard({ suit: "HEARTS", value: "10" })).toBe(true);
-    expect(isCard({ suit: "STARS", value: "10" })).toBe(false);
-    expect(isCard({ suit: "HEARTS", value: "1" })).toBe(false);
-    expect(isCard(null)).toBe(false);
+  it.each([
+    [{ suit: "HEARTS", value: "10" }, true],
+    [{ suit: "STARS", value: "10" }, false],
+    [{ suit: "HEARTS", value: "1" }, false],
+    [null, false],
+  ])("recognises %j as %s", (value, expected) => {
+    expect(isCard(value)).toBe(expected);
   });
   it("recognises and values every suit/value combination", () => {
     const expectedValues: Record<string, number> = { J: 10, Q: 10, K: 10, A: 11 };
