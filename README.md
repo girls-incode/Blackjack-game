@@ -140,19 +140,28 @@ pnpm start <deck-url>           # uses the given deck URL
 ```
 src/
 ├── main.ts                 # entry point: reads the URL, fetches the deck, plays, prints
+├── main.test.ts            # entry-point tests
 ├── game/
 │   ├── game.ts             # round rules
+│   ├── game.test.ts
 │   ├── standardBlackjackGame.ts # standard game configuration
 │   ├── strategy.ts         # draw strategies
+│   ├── strategy.test.ts
 │   ├── card.ts             # cards and scoring
-│   ├── deck.ts              # deck operations
-│   └── format.ts           # output formatting
+│   ├── card.test.ts
+│   ├── deck.ts             # deck operations
+│   ├── deck.test.ts
+│   ├── format.ts           # output formatting
+│   └── format.test.ts
 ├── deckSource/
-│   ├── deckSource.ts        # deck-source interface and HTTP fetching
-│   └── deckParser.ts        # response validation
+│   ├── deckSource.ts       # deck-source interface and HTTP fetching
+│   ├── deckSource.test.ts
+│   ├── deckParser.ts       # response validation
+│   └── deckParser.test.ts
 ├── errors/
 │   ├── appErrors.ts         # application error types
 │   ├── handleError.ts       # top-level error handling
-│   └── index.ts             # error-module exports
-└── testing/                # test helpers
+│   ├── index.ts             # error-module exports
+│   └── errors.test.ts       # error-handling tests
+└── testing/                 # shared test helpers (cards and HTTP responses)
 ```
