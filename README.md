@@ -2,50 +2,61 @@
 
 A command-line game of blackjack between a player and a dealer, written in TypeScript. The deck is fetched as JSON over HTTP, one round is played, and the result is printed.
 
-## Requirements
+<img src="docs/blackjack-round.svg" alt="Blackjack round: Dealer 27, Player 19, Player wins" width="100%"/>
 
-- pnpm
-- Node.js >= 22.9
-- TypeScript 7.0.2
-- Vitest 5.0.3
+## The game
 
+Two players: the Player and the Dealer. One round is played with a deck fetched from a URL.
 
-## Setup
+### Deck
 
-```sh
-pnpm install
+- A deck is a JSON list of card objects, e.g. `{"suit":"HEARTS","value":"5"}`.
+- `suit` is one of `HEARTS`, `CLUBS`, `SPADES`, `DIAMONDS`.
+- `value` is one of `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `J`, `Q`, `K`, `A`.
+- The deck is fetched with a `GET` from the URL given on the command line. Without a URL it defaults to `https://sandbox.getunleash.io/blackjack/shuffle`.
+
+### Card values
+
+- Face cards (J, Q, K) are worth 10.
+- Aces (A) are always worth 11.
+- Number cards are worth their number.
+
+### Rules
+
+- The Player draws two cards first, then the Dealer draws two.
+- Blackjack is 21 with exactly two cards, so it can only happen on the initial draw.
+  - If both have blackjack, the Dealer wins.
+  - If only one has blackjack, that side wins and the round ends.
+  - If neither has it, the round continues.
+- The Player draws until reaching 17 or more. A score above 21 is a bust and the Player loses, whatever happens to the Dealer.
+- If the Player has not busted, it is the Dealer's turn. The Dealer draws until having a higher score than the Player, or until bust (a score over 21).
+
+### Output
+
+- The winner, prefixed with `Winner:`.
+- Then the Dealer's name, score and hand separated with `|`.
+- Then the Player's name, score and hand separated with `|`.
+- Suits are written as `H`, `S`, `C`, `D`, followed by the card value as received from the deck, so the seven of spades is `S7`.
+
+```
+Winner: Player
+Dealer | 27 | S7,S10,CJ
+Player | 19 | D2,H2,C6,H9
 ```
 
-### Development
+### Examples
 
-```sh
-pnpm test         # run the tests (vitest)
-pnpm typecheck    # type-check with tsc
-pnpm build        # bundle to dist/ with vite
+Cards are supplied in draw order: the Player's two cards, the Dealer's two cards, then any cards drawn during the round.
+
+Full round, the Dealer busts:
+
+Input deck: `D2,H2,S7,S10,C6,H9,CJ`
+
 ```
-
-### Run
-
-```sh
-pnpm start                      # uses the default deck URL
-pnpm start <deck-url>           # uses the given deck URL
+Winner: Player
+Dealer | 27 | S7,S10,CJ
+Player | 19 | D2,H2,C6,H9
 ```
-
-`pnpm start` builds the project first, then runs `dist/main.js`. Without a command-line URL, it uses `https://sandbox.getunleash.io/blackjack/shuffle`.
-The URL should respond to a `GET` with a JSON list of cards, e.g. `{"suit":"HEARTS","value":"5"}`.
-Suits are printed as `H`, `S`, `C`, `D`, followed by the card value as received (`S7` is the seven of spades).
-
-## Game rules
-
-- Player is dealt two cards, then the Dealer is dealt two.
-- Blackjack is 21 with exactly two cards. If both have it, the Dealer wins. If only one has it, that side wins and the round ends.
-- Otherwise Player draws until reaching 17 or more. Above 21 is a bust and Player loses, whatever the Dealer holds.
-- Then the Dealer draws until strictly ahead of Player or bust. The Dealer wins unless busted.
-- Face cards (J, Q, K) are worth 10, aces are always worth 11, and number cards are worth their number.
-
-### Example inputs and outputs
-
-Cards are supplied in draw order: Player's two cards, the Dealer's two cards, then any cards drawn during the round.
 
 Player blackjack:
 
@@ -95,6 +106,31 @@ Input deck: `H10,H7,S10,S6,SK`
 Winner: Player
 Dealer | 26 | S10,S6,SK
 Player | 17 | H10,H7
+```
+
+## Requirements
+
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.9-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/) [![pnpm](https://img.shields.io/badge/pnpm-11.18.0-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/) [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/microsoft/typescript) [![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/vitejs/vite) [![Vitest](https://img.shields.io/badge/Vitest-5.0.3-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/vitest-dev/vitest)
+
+## Setup
+
+```sh
+pnpm install
+```
+
+### Development
+
+```sh
+pnpm test         # run the tests (vitest)
+pnpm typecheck    # type-check with tsc
+pnpm build        # bundle to dist/ with vite
+```
+
+### Run
+
+```sh
+pnpm start                      # uses the default deck URL
+pnpm start <deck-url>           # uses the given deck URL
 ```
 
 ## Project layout
