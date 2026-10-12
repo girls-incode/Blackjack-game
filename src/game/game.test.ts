@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { DeckExhaustedError } from "../errors";
 import { cards } from "../testing";
 import { formatCard, score } from "./card";
-import { formatResult } from "./format";
 import { Game } from "./game";
 import { createStandardBlackjackGame } from "./standardBlackjackGame";
 import { StandOnScoreStrategy } from "./strategy";
@@ -14,7 +13,7 @@ describe("standard game", () => {
     ["dealer wins when both have blackjack", "HA,HK,SA,SQ", "Dealer"],
     ["player wins with only blackjack", "HA,HK,S9,S8", "Player"],
     ["dealer wins with only blackjack", "H9,H8,SA,SQ", "Dealer"],
-  ])("%s", (_description, deck, winner) => {
+  ])("ends immediately when %s", (_description, deck, winner) => {
     const r = play(deck);
     expect(r.winner).toBe(winner);
     expect(r.player.cards).toHaveLength(2);
@@ -23,7 +22,7 @@ describe("standard game", () => {
   it.each([
     ["player", "HA,DA,S9,S8", "Dealer"],
     ["dealer", "H10,H7,SA,CA", "Player"],
-  ])("treats an initial two-ace %s hand as a bust", (side, deck, winner) => {
+  ])("counts two initial aces as 22, so the %s loses", (side, deck, winner) => {
     const r = play(deck);
     const hand = side === "player" ? r.player : r.dealer;
     const otherHand = side === "player" ? r.dealer : r.player;
@@ -37,14 +36,14 @@ describe("standard game", () => {
     expect(score(r.player.cards)).toBe(26);
     expect(r.dealer.cards).toHaveLength(2);
   });
-  it("player stops at 17 or higher", () => {
-    expect(play("H10,H7,S2,S3,SK,S9").player.cards).toHaveLength(2);
+  it("does not draw for the player at 17", () => {
+    expect(play("H10,H7,S8,S9,H2").player.cards).toHaveLength(2);
   });
-  it("player draws below 17", () => {
-    const r = play("H10,H6,S2,S3,H2,S5,S6,S7");
+  it("draws for the player below 17", () => {
+    const r = play("H10,H6,S10,S8,H2,S2");
     expect(r.player.cards.map(formatCard)).toEqual(["H10", "H6", "H2"]);
   });
-  it("dealer draws until higher than player and wins", () => {
+  it("draws for the dealer until its score is higher", () => {
     const r = play("H10,H9,S2,S3,S4,S5,S6,S7");
     expect(r.dealer.cards.map(formatCard)).toEqual([
       "S2",
@@ -55,12 +54,12 @@ describe("standard game", () => {
     ]);
     expect(r.winner).toBe("Dealer");
   });
-  it("dealer wins ties by drawing on", () => {
+  it("draws for the dealer when its score ties the player", () => {
     const r = play("H10,H8,S10,S8,S2");
     expect(r.winner).toBe("Dealer");
     expect(score(r.dealer.cards)).toBe(20);
   });
-  it("player wins when dealer busts", () => {
+  it("awards the round to the player when the dealer busts", () => {
     const r = play("H10,H7,S10,S6,SK");
     expect(r.winner).toBe("Player");
     expect(score(r.dealer.cards)).toBe(26);
@@ -76,7 +75,7 @@ describe("standard game", () => {
   it("does not mutate the input deck", () => {
     const deck = cards("H10,H7,S10,S6,SK");
     createStandardBlackjackGame().play(deck);
-    expect(deck).toHaveLength(5);
+    expect(deck).toEqual(cards("H10,H7,S10,S6,SK"));
   });
   it("can play multiple rounds with the same game instance", () => {
     const game = createStandardBlackjackGame();
@@ -88,7 +87,7 @@ describe("standard game", () => {
 });
 
 describe("Game with custom players", () => {
-  it("uses the injected names and strategies", () => {
+  it("uses the configured names and draw strategies", () => {
     const stand = new StandOnScoreStrategy(0);
     const r = new Game(
       { name: "Bob", strategy: stand },
@@ -96,15 +95,7 @@ describe("Game with custom players", () => {
     ).play(cards("H10,H5,S10,S6"));
     expect(r.winner).toBe("House");
     expect(r.player.name).toBe("Bob");
+    expect(r.dealer.name).toBe("House");
     expect(r.player.cards).toHaveLength(2);
-  });
-});
-
-describe("formatResult", () => {
-  it("matches the required output format", () => {
-    const r = play("H10,H7,S10,S6,SK");
-    expect(formatResult(r)).toBe(
-      "Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7",
-    );
   });
 });

@@ -61,24 +61,19 @@ describe("HttpDeckSource", () => {
   ])(
     "fails with a specific DeckError on %s",
     async (_name, reply, ErrorType) => {
-      const err = await getDeck(fetchReplying(reply())).catch(
-        (e: unknown) => e,
-      );
-      expect(err).toBeInstanceOf(ErrorType);
-      expect(err).toBeInstanceOf(DeckError);
+      const request = getDeck(fetchReplying(reply()));
+      await expect(request).rejects.toBeInstanceOf(ErrorType);
+      await expect(request).rejects.toBeInstanceOf(DeckError);
     },
   );
 
-  it("reports a body-reading failure as a request error", async () => {
-    const err = await getDeck(
-      fetchReplying({
-        ok: true,
-        json: () => Promise.reject(new Error("body read failed")),
-      } as unknown as Response),
-    ).catch((e: unknown) => e);
+  it("reports a body-reading failure as invalid JSON", async () => {
+    const response = new Response();
+    vi.spyOn(response, "json").mockRejectedValue(new Error("body read failed"));
 
-    expect(err).toBeInstanceOf(DeckFormatError);
-    expect((err as Error).message).toBe("Deck response was not valid JSON");
+    const request = getDeck(fetchReplying(response));
+    await expect(request).rejects.toBeInstanceOf(DeckFormatError);
+    await expect(request).rejects.toThrow("Deck response was not valid JSON");
   });
 
   it("rejects URLs with credentials without echoing them", () => {
@@ -87,12 +82,9 @@ describe("HttpDeckSource", () => {
   });
 
   it("keeps the query string out of error messages", async () => {
-    const err = await getDeck(
-      fetchReplying(jsonResponse({}, 404)),
-      URL_WITH_QUERY,
-    ).catch((e: Error) => e);
-    expect((err as Error).message).toContain("HTTP 404");
-    expect((err as Error).message).not.toMatch(/token/);
+    await expect(
+      getDeck(fetchReplying(jsonResponse({}, 404)), URL_WITH_QUERY),
+    ).rejects.toThrow(/^Deck endpoint returned HTTP 404(?![\s\S]*token)/);
   });
 
   it("reports an aborted request as a deck error", async () => {
@@ -113,12 +105,14 @@ describe("HttpDeckSource", () => {
       },
     );
 
-    const err = await getDeck(fetchFn).catch((e: unknown) => e);
+    const request = getDeck(fetchFn);
 
     expect(timeoutSpy).toHaveBeenCalledWith(5000);
     expect(fetchFn).toHaveBeenCalledOnce();
-    expect(err).toBeInstanceOf(DeckRequestError);
-    expect((err as Error).message).toMatch(/timed out after 5000 ms/);
+    await expect(request).rejects.toThrow(
+      "Deck request timed out after 5000 ms",
+    );
+    await expect(request).rejects.toBeInstanceOf(DeckRequestError);
     timeoutSpy.mockRestore();
   });
 });

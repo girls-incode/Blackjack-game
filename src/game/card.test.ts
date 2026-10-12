@@ -16,15 +16,30 @@ const formatCases: readonly [Card, string][] = [
   [{ suit: "SPADES", value: "7" }, "S7"],
   [{ suit: "DIAMONDS", value: "10" }, "D10"],
 ];
+const rankValues: Record<(typeof VALUES)[number], number> = {
+  "2": 2,
+  "3": 3,
+  "4": 4,
+  "5": 5,
+  "6": 6,
+  "7": 7,
+  "8": 8,
+  "9": 9,
+  "10": 10,
+  J: 10,
+  Q: 10,
+  K: 10,
+  A: 11,
+};
 
 describe("card", () => {
   it.each([
-    ["face cards", "HJ,CQ,SK", 30],
-    ["aces", "HA,D9", 20],
     ["number cards", "H2,C10", 12],
-    ["multiple aces", "HA,DA,SK", 32],
-    ["multiple aces and a face card", "HA,DA,SA,HK", 43],
-  ])("scores %s correctly", (_description, hand, expected) => {
+    ["face cards", "HJ,CQ,SK", 30],
+    ["an ace as 11", "HA,D9", 20],
+    ["multiple aces as 11 each", "HA,DA,SK", 32],
+    ["three aces as 11 each", "HA,DA,SA,HK", 43],
+  ])("scores %s", (_description, hand, expected) => {
     expect(score(cards(hand))).toBe(expected);
   });
   it.each(formatCases)("formats %j as %s", (card, expected) => {
@@ -46,20 +61,16 @@ describe("card", () => {
   ])("recognises %j as %s", (value, expected) => {
     expect(isCard(value)).toBe(expected);
   });
-  it("recognises and values every suit/value combination", () => {
-    const expectedValues: Record<string, number> = {
-      J: 10,
-      Q: 10,
-      K: 10,
-      A: 11,
-    };
-
+  it("recognises every valid suit/value combination", () => {
     for (const suit of SUITS) {
       for (const value of VALUES) {
-        const card = { suit, value };
-        expect(isCard(card)).toBe(true);
-        expect(cardValue(card)).toBe(expectedValues[value] ?? Number(value));
+        expect(isCard({ suit, value })).toBe(true);
       }
+    }
+  });
+  it("gives every rank its required value", () => {
+    for (const value of VALUES) {
+      expect(cardValue({ suit: "HEARTS", value })).toBe(rankValues[value]);
     }
   });
 });
