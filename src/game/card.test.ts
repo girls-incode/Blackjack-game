@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { cardValue, formatCard, isBlackjack, isBust, isCard, score, SUITS, VALUES, type Card } from "./card";
 import { cards } from "../testing";
+import {
+  type Card,
+  cardValue,
+  formatCard,
+  isBlackjack,
+  isBust,
+  isCard,
+  SUITS,
+  score,
+  VALUES,
+} from "./card";
 
 const formatCases: readonly [Card, string][] = [
   [{ suit: "SPADES", value: "7" }, "S7"],
@@ -37,7 +47,12 @@ describe("card", () => {
     expect(isCard(value)).toBe(expected);
   });
   it("recognises and values every suit/value combination", () => {
-    const expectedValues: Record<string, number> = { J: 10, Q: 10, K: 10, A: 11 };
+    const expectedValues: Record<string, number> = {
+      J: 10,
+      Q: 10,
+      K: 10,
+      A: 11,
+    };
 
     for (const suit of SUITS) {
       for (const value of VALUES) {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Deck } from "./deck";
 import { GameError } from "../errors";
 import { cards } from "../testing";
+import { Deck } from "./deck";
 
 describe("Deck", () => {
   it("draws cards in order", () => {

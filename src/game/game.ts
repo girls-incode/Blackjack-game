@@ -1,4 +1,4 @@
-import { isBlackjack, isBust, score, type Card } from "./card";
+import { type Card, isBlackjack, isBust, score } from "./card";
 import { Deck } from "./deck";
 import type { DrawStrategy } from "./strategy";
 
@@ -50,7 +50,11 @@ export class Game {
     const deck = new Deck(cards);
     const player = this.deal(this.player.name, deck);
     const dealer = this.deal(this.dealer.name, deck);
-    const result = (winner: Participant): GameResult => ({ winner: winner.name, dealer, player });
+    const result = (winner: Participant): GameResult => ({
+      winner: winner.name,
+      dealer,
+      player,
+    });
 
     // Dealer wins when both have blackjack.
     if (isBlackjack(dealer.cards)) return result(dealer);
@@ -69,8 +73,16 @@ export class Game {
   }
 
   /** Gives `who` cards from the deck until their strategy says stop or they bust. */
-  private drawUntilDone(who: Participant, strategy: DrawStrategy, opponentScore: number, deck: Deck): void {
-    while (!isBust(who.cards) && strategy.shouldDraw(who.cards, opponentScore)) {
+  private drawUntilDone(
+    who: Participant,
+    strategy: DrawStrategy,
+    opponentScore: number,
+    deck: Deck,
+  ): void {
+    while (
+      !isBust(who.cards) &&
+      strategy.shouldDraw(who.cards, opponentScore)
+    ) {
       who.cards.push(deck.draw());
     }
   }

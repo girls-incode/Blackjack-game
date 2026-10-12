@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { cards } from "../testing";
 import { formatCard, score } from "./card";
-import { createStandardBlackjackGame } from "./standardBlackjackGame";
 import { formatResult } from "./format";
 import { Game } from "./game";
+import { createStandardBlackjackGame } from "./standardBlackjackGame";
 import { StandOnScoreStrategy } from "./strategy";
-import { cards } from "../testing";
 
 const play = (deck: string) => createStandardBlackjackGame().play(cards(deck));
 
@@ -45,7 +45,13 @@ describe("standard game", () => {
   });
   it("dealer draws until higher than player and wins", () => {
     const r = play("H10,H9,S2,S3,S4,S5,S6,S7");
-    expect(r.dealer.cards.map(formatCard)).toEqual(["S2", "S3", "S4", "S5", "S6"]);
+    expect(r.dealer.cards.map(formatCard)).toEqual([
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "S6",
+    ]);
     expect(r.winner).toBe("Dealer");
   });
   it("dealer wins ties by drawing on", () => {
@@ -62,7 +68,9 @@ describe("standard game", () => {
     expect(() => play("H2,H3,S2")).toThrow(/Deck ran out/);
   });
   it("throws if the deck is empty", () => {
-    expect(() => createStandardBlackjackGame().play([])).toThrow(/Deck ran out/);
+    expect(() => createStandardBlackjackGame().play([])).toThrow(
+      /Deck ran out/,
+    );
   });
   it("does not mutate the input deck", () => {
     const deck = cards("H10,H7,S10,S6,SK");
@@ -81,7 +89,10 @@ describe("standard game", () => {
 describe("Game with custom players", () => {
   it("uses the injected names and strategies", () => {
     const stand = new StandOnScoreStrategy(0);
-    const r = new Game({ name: "Bob", strategy: stand }, { name: "House", strategy: stand }).play(cards("H10,H5,S10,S6"));
+    const r = new Game(
+      { name: "Bob", strategy: stand },
+      { name: "House", strategy: stand },
+    ).play(cards("H10,H5,S10,S6"));
     expect(r.winner).toBe("House");
     expect(r.player.name).toBe("Bob");
     expect(r.player.cards).toHaveLength(2);
@@ -91,6 +102,8 @@ describe("Game with custom players", () => {
 describe("formatResult", () => {
   it("matches the required output format", () => {
     const r = play("H10,H7,S10,S6,SK");
-    expect(formatResult(r)).toBe("Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7");
+    expect(formatResult(r)).toBe(
+      "Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7",
+    );
   });
 });

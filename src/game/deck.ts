@@ -1,5 +1,5 @@
-import type { Card } from "./card";
 import { GameError } from "../errors";
+import type { Card } from "./card";
 
 /** Draws cards in order from a fixed list without mutating it. */
 export class Deck {

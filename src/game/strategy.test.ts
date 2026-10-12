@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { BeatOpponentStrategy, StandOnScoreStrategy } from "./strategy";
 import { cards } from "../testing";
+import { BeatOpponentStrategy, StandOnScoreStrategy } from "./strategy";
 
 describe("StandOnScoreStrategy", () => {
   const strategy = new StandOnScoreStrategy(17);

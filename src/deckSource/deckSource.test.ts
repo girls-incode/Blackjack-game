@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { HttpDeckSource } from "./deckSource";
 import { ConfigError, DeckError } from "../errors";
 import { cards, fetchReplying, jsonResponse } from "../testing";
+import { HttpDeckSource } from "./deckSource";
 
 const DECK_URL = "https://example.com/deck";
 const FILE_URL = "file:///deck";
@@ -11,7 +11,8 @@ const URL_WITH_QUERY = "https://example.com/deck?token=abc";
 
 const goodDeck = cards("H5,SA");
 
-const getDeck = (fetchFn: typeof fetch, url = DECK_URL) => new HttpDeckSource(url, fetchFn).getDeck();
+const getDeck = (fetchFn: typeof fetch, url = DECK_URL) =>
+  new HttpDeckSource(url, fetchFn).getDeck();
 
 describe("HttpDeckSource", () => {
   it("rejects non-http URLs", () => {
@@ -24,7 +25,9 @@ describe("HttpDeckSource", () => {
   });
 
   it("returns the deck on success", async () => {
-    expect(await getDeck(fetchReplying(jsonResponse(goodDeck)))).toEqual(goodDeck);
+    expect(await getDeck(fetchReplying(jsonResponse(goodDeck)))).toEqual(
+      goodDeck,
+    );
   });
 
   it("uses GET with the exact URL", async () => {
@@ -32,16 +35,35 @@ describe("HttpDeckSource", () => {
     await getDeck(fetchFn);
     expect(fetchFn).toHaveBeenCalledWith(
       new URL(DECK_URL),
-      expect.objectContaining({ method: "GET", signal: expect.any(AbortSignal) }),
+      expect.objectContaining({
+        method: "GET",
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
   it.each([
-    ["a failed request", () => new Error("network down"), /Failed to fetch deck.*network down/],
+    [
+      "a failed request",
+      () => new Error("network down"),
+      /Failed to fetch deck.*network down/,
+    ],
     ["an error status", () => jsonResponse({}, 503), /503/],
-    ["an invalid card", () => jsonResponse([{ suit: "X", value: "1" }]), /Invalid card/],
+    [
+      "an invalid card",
+      () => jsonResponse([{ suit: "X", value: "1" }]),
+      /Invalid card/,
+    ],
     ["malformed JSON", () => new Response("<html>"), /Failed to fetch deck/],
-    ["a body that fails while reading", () => ({ ok: true, json: () => Promise.reject(new Error("timed out")) }) as unknown as Response, /timed out/],
+    [
+      "a body that fails while reading",
+      () =>
+        ({
+          ok: true,
+          json: () => Promise.reject(new Error("timed out")),
+        }) as unknown as Response,
+      /timed out/,
+    ],
   ])("fails with a DeckError on %s", async (_name, reply, message) => {
     const err = await getDeck(fetchReplying(reply())).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(DeckError);
@@ -54,24 +76,31 @@ describe("HttpDeckSource", () => {
   });
 
   it("keeps the query string out of error messages", async () => {
-    const err = await getDeck(fetchReplying(jsonResponse({}, 404)), URL_WITH_QUERY).catch((e: Error) => e);
+    const err = await getDeck(
+      fetchReplying(jsonResponse({}, 404)),
+      URL_WITH_QUERY,
+    ).catch((e: Error) => e);
     expect((err as Error).message).toContain(DECK_URL);
     expect((err as Error).message).not.toMatch(/token/);
   });
 
   it("reports an aborted request as a deck error", async () => {
     const controller = new AbortController();
-    const timeoutSpy = vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
-      expect(ms).toBe(5000);
-      controller.abort();
-      return controller.signal;
-    });
+    const timeoutSpy = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockImplementation((ms) => {
+        expect(ms).toBe(5000);
+        controller.abort();
+        return controller.signal;
+      });
 
-    const fetchFn = vi.fn((_: string | URL | Request, options?: RequestInit): Promise<Response> => {
-      expect(options?.signal).toBe(controller.signal);
-      expect(options?.signal?.aborted).toBe(true);
-      return Promise.reject(new DOMException("timed out", "TimeoutError"));
-    });
+    const fetchFn = vi.fn(
+      (_: string | URL | Request, options?: RequestInit): Promise<Response> => {
+        expect(options?.signal).toBe(controller.signal);
+        expect(options?.signal?.aborted).toBe(true);
+        return Promise.reject(new DOMException("timed out", "TimeoutError"));
+      },
+    );
 
     const err = await getDeck(fetchFn).catch((e: unknown) => e);
 

@@ -1,7 +1,9 @@
-import { isCard, SUIT_SYMBOLS, type Card, type Suit } from "../game/card";
+import { type Card, isCard, SUIT_SYMBOLS, type Suit } from "../game/card";
 
 // "H" -> "HEARTS", built from the app's own suit symbols so the two never drift apart.
-const SUIT_BY_SYMBOL = Object.fromEntries(Object.entries(SUIT_SYMBOLS).map(([suit, symbol]) => [symbol, suit as Suit]));
+const SUIT_BY_SYMBOL = Object.fromEntries(
+  Object.entries(SUIT_SYMBOLS).map(([suit, symbol]) => [symbol, suit as Suit]),
+);
 
 /**
  * Builds cards from shorthand, e.g. "S7,HK" (same notation as the output format).

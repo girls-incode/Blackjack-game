@@ -1,4 +1,4 @@
-import { score, type Card } from "./card";
+import { type Card, score } from "./card";
 
 /** Decides whether a player takes another card. */
 export interface DrawStrategy {

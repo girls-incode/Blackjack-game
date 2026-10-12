@@ -4,7 +4,7 @@ export default defineConfig({
   build: {
     // Node CLI bundle rather than a browser app.
     ssr: "src/main.ts",
-    target: "node22",
+    target: "node26",
     outDir: "dist",
   },
   test: {

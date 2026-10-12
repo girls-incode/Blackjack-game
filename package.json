@@ -4,17 +4,21 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.9"
+    "node": ">=26"
   },
-  "packageManager": "pnpm@11.18.0",
+  "packageManager": "pnpm@12.12.1",
   "scripts": {
     "build": "vite build",
     "prestart": "pnpm build",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "typecheck": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check ."
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",

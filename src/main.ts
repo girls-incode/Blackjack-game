@@ -1,26 +1,42 @@
-import { createStandardBlackjackGame } from "./game/standardBlackjackGame";
-import { HttpDeckSource, type DeckSource } from "./deckSource/deckSource";
-import { handleError } from "./errors";
+import { HttpDeckSource } from "./deckSource/deckSource";
+import { ConfigError, handleError } from "./errors";
 import { formatResult } from "./game/format";
-import { pathToFileURL } from "node:url";
+import { createStandardBlackjackGame } from "./game/standardBlackjackGame";
 
 const DEFAULT_DECK_URL = "https://sandbox.getunleash.io/blackjack/shuffle";
+
+type RunOptions = {
+  fetchFn?: typeof fetch;
+  log?: (message: string) => void;
+};
+
+const resolveDeckUrl = (
+  args: readonly string[],
+  env: NodeJS.ProcessEnv,
+): string => {
+  if (args.length > 1) {
+    throw new ConfigError("Only one deck URL may be provided");
+  }
+
+  return args[0]?.trim() || env.DECK_URL?.trim() || DEFAULT_DECK_URL;
+};
 
 export const run = async (
   args = process.argv.slice(2),
   env: NodeJS.ProcessEnv = process.env,
-  fetchFn: typeof fetch = fetch,
+  { fetchFn = fetch, log = console.log }: RunOptions = {},
 ): Promise<void> => {
-  const url = args[0] || env.DECK_URL || DEFAULT_DECK_URL;
+  const url = resolveDeckUrl(args, env);
 
-  const source: DeckSource = new HttpDeckSource(url, fetchFn);
+  const source = new HttpDeckSource(url, fetchFn);
   const deck = await source.getDeck();
   const gameResult = createStandardBlackjackGame().play(deck);
-  console.log(formatResult(gameResult));
+  log(formatResult(gameResult));
 };
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run().catch((err) => {
+// Run the CLI only when this module is executed directly, not when imported by tests.
+if (import.meta.main) {
+  void run().catch((err) => {
     process.exitCode = handleError(err);
   });
 }

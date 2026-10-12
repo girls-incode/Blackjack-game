@@ -5,8 +5,8 @@ export class AppError extends Error {
   }
 }
 
-export class ConfigError extends AppError { }
+export class ConfigError extends AppError {}
 
-export class DeckError extends AppError { }
+export class DeckError extends AppError {}
 
-export class GameError extends AppError { }
+export class GameError extends AppError {}

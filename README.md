@@ -110,7 +110,7 @@ Player | 17 | H10,H7
 
 ## Requirements
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.9-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/) [![pnpm](https://img.shields.io/badge/pnpm-11.18.0-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/) [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/microsoft/typescript) [![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/vitejs/vite) [![Vitest](https://img.shields.io/badge/Vitest-5.0.3-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/vitest-dev/vitest)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D26-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/) [![pnpm](https://img.shields.io/badge/pnpm-12.12.1-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/) [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/microsoft/typescript) [![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/vitejs/vite) [![Vitest](https://img.shields.io/badge/Vitest-5.0.3-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/) [![Biome](https://img.shields.io/badge/Biome-2.5.15-60A5FA?style=for-the-badge&logo=biome&logoColor=white)](https://biomejs.dev/)
 
 ## Setup
 
@@ -124,6 +124,8 @@ pnpm install
 pnpm test         # run the tests (vitest)
 pnpm typecheck    # type-check with tsc
 pnpm build        # bundle to dist/ with vite
+pnpm check        # format and lint with biome
+pnpm format       # format supported files with biome
 ```
 
 ### Run
@@ -140,12 +142,17 @@ src/
 ├── main.ts                 # entry point: reads the URL, fetches the deck, plays, prints
 ├── game/
 │   ├── game.ts             # round rules
-│   ├── standardBlackjackGame.ts
+│   ├── standardBlackjackGame.ts # standard game configuration
 │   ├── strategy.ts         # draw strategies
 │   ├── card.ts             # cards and scoring
-│   ├── deck.ts
+│   ├── deck.ts              # deck operations
 │   └── format.ts           # output formatting
-├── deckSource/             # fetching and validating the deck
-├── errors/                 # error types and top-level error handling
+├── deckSource/
+│   ├── deckSource.ts        # deck-source interface and HTTP fetching
+│   └── deckParser.ts        # response validation
+├── errors/
+│   ├── appErrors.ts         # application error types
+│   ├── handleError.ts       # top-level error handling
+│   └── index.ts             # error-module exports
 └── testing/                # test helpers
 ```
