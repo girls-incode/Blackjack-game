@@ -1,15 +1,17 @@
-import { DeckError } from "../errors";
+import { DeckFormatError, InvalidCardError } from "../errors";
 import { type Card, isCard } from "../game/card";
 
 /** Validates untrusted JSON and returns it as cards, keeping only the suit and value of each. */
 export const parseDeck = (data: unknown): Card[] => {
-  if (!Array.isArray(data))
-    throw new DeckError("Deck response is not a JSON list");
+  if (!Array.isArray(data)) {
+    throw new DeckFormatError("Deck response is not a JSON list");
+  }
   return data.map((item, i) => {
-    if (!isCard(item))
-      throw new DeckError(
+    if (!isCard(item)) {
+      throw new InvalidCardError(
         `Invalid card at index ${i}: ${JSON.stringify(item)}`,
       );
+    }
     return { suit: item.suit, value: item.value };
   });
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GameError } from "../errors";
+import { DeckExhaustedError } from "../errors";
 import { cards } from "../testing";
 import { Deck } from "./deck";
 
@@ -9,6 +9,6 @@ describe("Deck", () => {
     expect([deck.draw(), deck.draw()]).toEqual(cards("H2,S3"));
   });
   it("throws when empty", () => {
-    expect(() => new Deck([]).draw()).toThrow(GameError);
+    expect(() => new Deck([]).draw()).toThrow(DeckExhaustedError);
   });
 });

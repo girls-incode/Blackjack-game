@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DeckExhaustedError } from "../errors";
 import { cards } from "../testing";
 import { formatCard, score } from "./card";
 import { formatResult } from "./format";
@@ -65,11 +66,11 @@ describe("standard game", () => {
     expect(score(r.dealer.cards)).toBe(26);
   });
   it("throws if the deck runs out", () => {
-    expect(() => play("H2,H3,S2")).toThrow(/Deck ran out/);
+    expect(() => play("H2,H3,S2")).toThrow(DeckExhaustedError);
   });
   it("throws if the deck is empty", () => {
     expect(() => createStandardBlackjackGame().play([])).toThrow(
-      /Deck ran out/,
+      DeckExhaustedError,
     );
   });
   it("does not mutate the input deck", () => {

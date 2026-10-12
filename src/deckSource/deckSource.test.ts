@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { ConfigError, DeckError } from "../errors";
+import {
+  ConfigError,
+  DeckError,
+  DeckFormatError,
+  DeckHttpError,
+  DeckRequestError,
+  InvalidCardError,
+} from "../errors";
 import { cards, fetchReplying, jsonResponse } from "../testing";
 import { HttpDeckSource } from "./deckSource";
 
@@ -43,31 +50,35 @@ describe("HttpDeckSource", () => {
   });
 
   it.each([
-    [
-      "a failed request",
-      () => new Error("network down"),
-      /Failed to fetch deck.*network down/,
-    ],
-    ["an error status", () => jsonResponse({}, 503), /503/],
+    ["a failed request", () => new Error("network down"), DeckRequestError],
+    ["an error status", () => jsonResponse({}, 503), DeckHttpError],
     [
       "an invalid card",
       () => jsonResponse([{ suit: "X", value: "1" }]),
-      /Invalid card/,
+      InvalidCardError,
     ],
-    ["malformed JSON", () => new Response("<html>"), /Failed to fetch deck/],
-    [
-      "a body that fails while reading",
-      () =>
-        ({
-          ok: true,
-          json: () => Promise.reject(new Error("timed out")),
-        }) as unknown as Response,
-      /timed out/,
-    ],
-  ])("fails with a DeckError on %s", async (_name, reply, message) => {
-    const err = await getDeck(fetchReplying(reply())).catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(DeckError);
-    expect((err as DeckError).message).toMatch(message);
+    ["malformed JSON", () => new Response("<html>"), DeckFormatError],
+  ])(
+    "fails with a specific DeckError on %s",
+    async (_name, reply, ErrorType) => {
+      const err = await getDeck(fetchReplying(reply())).catch(
+        (e: unknown) => e,
+      );
+      expect(err).toBeInstanceOf(ErrorType);
+      expect(err).toBeInstanceOf(DeckError);
+    },
+  );
+
+  it("reports a body-reading failure as a request error", async () => {
+    const err = await getDeck(
+      fetchReplying({
+        ok: true,
+        json: () => Promise.reject(new Error("body read failed")),
+      } as unknown as Response),
+    ).catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(DeckFormatError);
+    expect((err as Error).message).toBe("Deck response was not valid JSON");
   });
 
   it("rejects URLs with credentials without echoing them", () => {
@@ -80,7 +91,7 @@ describe("HttpDeckSource", () => {
       fetchReplying(jsonResponse({}, 404)),
       URL_WITH_QUERY,
     ).catch((e: Error) => e);
-    expect((err as Error).message).toContain(DECK_URL);
+    expect((err as Error).message).toContain("HTTP 404");
     expect((err as Error).message).not.toMatch(/token/);
   });
 
@@ -106,8 +117,8 @@ describe("HttpDeckSource", () => {
 
     expect(timeoutSpy).toHaveBeenCalledWith(5000);
     expect(fetchFn).toHaveBeenCalledOnce();
-    expect(err).toBeInstanceOf(DeckError);
-    expect((err as DeckError).message).toMatch(/timed out/);
+    expect(err).toBeInstanceOf(DeckRequestError);
+    expect((err as Error).message).toMatch(/timed out after 5000 ms/);
     timeoutSpy.mockRestore();
   });
 });

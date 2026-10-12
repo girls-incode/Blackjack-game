@@ -1,4 +1,10 @@
-import { ConfigError, DeckError } from "../errors";
+import {
+  ConfigError,
+  DeckError,
+  DeckFormatError,
+  DeckHttpError,
+  DeckRequestError,
+} from "../errors";
 import type { Card } from "../game/card";
 import { parseDeck } from "./deckParser";
 
@@ -32,21 +38,40 @@ export class HttpDeckSource implements DeckSource {
   }
 
   async getDeck(): Promise<Card[]> {
-    const shownUrl = this.url.origin + this.url.pathname; // no credentials or query string in messages
     try {
       const res = await this.fetchFn(this.url, {
         method: "GET",
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
-      if (!res.ok)
-        throw new DeckError(
-          `GET ${shownUrl} failed: ${res.status} ${res.statusText}`,
+      if (!res.ok) {
+        throw new DeckHttpError(
+          `Deck endpoint returned HTTP ${res.status} ${res.statusText}`,
         );
-      return parseDeck(await res.json());
+      }
+
+      let data: unknown;
+      try {
+        data = await res.json();
+      } catch (err) {
+        if (err instanceof Error && err.name === "TimeoutError") {
+          throw err;
+        }
+        throw new DeckFormatError("Deck response was not valid JSON", {
+          cause: err,
+        });
+      }
+
+      return parseDeck(data);
     } catch (err) {
       if (err instanceof DeckError) throw err;
+      if (err instanceof Error && err.name === "TimeoutError") {
+        throw new DeckRequestError(
+          `Deck request timed out after ${TIMEOUT_MS} ms`,
+          { cause: err },
+        );
+      }
       const reason = err instanceof Error ? err.message : String(err);
-      throw new DeckError(`Failed to fetch deck from ${shownUrl}: ${reason}`, {
+      throw new DeckRequestError(`Deck request failed: ${reason}`, {
         cause: err,
       });
     }

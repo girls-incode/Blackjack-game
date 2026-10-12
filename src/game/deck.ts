@@ -1,4 +1,4 @@
-import { GameError } from "../errors";
+import { DeckExhaustedError } from "../errors";
 import type { Card } from "./card";
 
 /** Draws cards in order from a fixed list without mutating it. */
@@ -9,7 +9,11 @@ export class Deck {
 
   draw(): Card {
     const card = this.cards[this.next];
-    if (!card) throw new GameError("Deck ran out of cards");
+    if (!card) {
+      throw new DeckExhaustedError(
+        "Deck ran out of cards before the round finished",
+      );
+    }
     this.next++;
     return card;
   }

@@ -8,5 +8,10 @@ export class AppError extends Error {
 export class ConfigError extends AppError {}
 
 export class DeckError extends AppError {}
+export class DeckRequestError extends DeckError {}
+export class DeckHttpError extends DeckError {}
+export class DeckFormatError extends DeckError {}
+export class InvalidCardError extends DeckError {}
 
 export class GameError extends AppError {}
+export class DeckExhaustedError extends GameError {}
