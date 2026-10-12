@@ -1,8 +1,8 @@
 import { formatCard, score } from "./card";
-import type { GameResult, Participant } from "./game";
+import type { GameResult, PlayerState } from "./game";
 
-const formatParticipant = (p: Participant): string =>
-  `${p.name} | ${score(p.cards)} | ${p.cards.map(formatCard).join(",")}`;
+const formatPlayerState = (state: PlayerState): string =>
+  `${state.name} | ${score(state.cards)} | ${state.cards.map(formatCard).join(",")}`;
 
 export const formatResult = (r: GameResult): string =>
-  `Winner: ${r.winner}\n${formatParticipant(r.dealer)}\n${formatParticipant(r.player)}`;
+  `Winner: ${r.winner}\n${formatPlayerState(r.dealer)}\n${formatPlayerState(r.player)}`;

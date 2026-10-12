@@ -43,6 +43,20 @@ describe("main", () => {
     );
   });
 
+  it("runs with an injected deck source", async () => {
+    const log = vi.fn();
+    const deckSource = {
+      getDeck: vi.fn().mockResolvedValue(cards("H10,H7,S10,S6,SK")),
+    };
+
+    await run([], {}, { deckSource, log });
+
+    expect(deckSource.getDeck).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith(
+      "Winner: Player\nDealer | 26 | S10,S6,SK\nPlayer | 17 | H10,H7",
+    );
+  });
+
   it("rejects more than one command-line URL", async () => {
     await expect(
       run(["https://example.com/one", "https://example.com/two"]),

@@ -1,20 +1,19 @@
 import { DeckExhaustedError } from "../errors";
 import type { Card } from "./card";
 
-/** Draws cards in order from a fixed list without mutating it. */
+/** Provides cards in draw order without modifying the original list. */
 export class Deck {
-  private next = 0;
+  private nextIndex = 0;
 
-  constructor(private readonly cards: readonly Card[]) {}
+  constructor(private readonly deckCards: readonly Card[]) {}
 
   draw(): Card {
-    const card = this.cards[this.next];
-    if (!card) {
+    if (this.nextIndex >= this.deckCards.length) {
       throw new DeckExhaustedError(
         "Deck ran out of cards before the round finished",
       );
     }
-    this.next++;
-    return card;
+
+    return this.deckCards[this.nextIndex++];
   }
 }

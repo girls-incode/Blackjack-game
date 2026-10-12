@@ -8,12 +8,33 @@ import {
 import type { Card } from "../game/card";
 import { parseDeck } from "./deckParser";
 
-/** Where a deck comes from (HTTP, file, fixture). */
+/** a deck comes from (HTTP, file, fixture). */
 export interface DeckSource {
   getDeck(): Promise<Card[]>;
 }
 
 const TIMEOUT_MS = 5000;
+
+const isTimeoutError = (err: unknown): err is Error =>
+  err instanceof Error && err.name === "TimeoutError";
+
+const timeoutError = (cause: Error): DeckRequestError =>
+  new DeckRequestError(`Deck request timed out after ${TIMEOUT_MS} ms`, {
+    cause,
+  });
+
+const readJson = async (response: Response): Promise<unknown> => {
+  try {
+    return await response.json();
+  } catch (err) {
+    if (isTimeoutError(err)) {
+      throw timeoutError(err);
+    }
+    throw new DeckFormatError("Deck response was not valid JSON", {
+      cause: err,
+    });
+  }
+};
 
 export class HttpDeckSource implements DeckSource {
   private readonly url: URL;
@@ -22,17 +43,17 @@ export class HttpDeckSource implements DeckSource {
     url: string,
     private readonly fetchFn = fetch,
   ) {
-    // Credentials are rejected (fetch would echo them in its error) and the input is never echoed.
     const parsed = URL.parse(url);
     if (
       !parsed ||
-      !/^https?:$/.test(parsed.protocol) ||
-      parsed.username ||
-      parsed.password
+      !["http:", "https:"].includes(parsed.protocol) ||
+      !parsed.hostname
     ) {
-      throw new ConfigError(
-        "Deck URL must be a valid http(s) URL without credentials",
-      );
+      throw new ConfigError("Deck URL must be a valid http(s) URL");
+    }
+
+    if (parsed.username || parsed.password) {
+      throw new ConfigError("Deck URL must not contain credentials");
     }
     this.url = parsed;
   }
@@ -49,27 +70,11 @@ export class HttpDeckSource implements DeckSource {
         );
       }
 
-      let data: unknown;
-      try {
-        data = await res.json();
-      } catch (err) {
-        if (err instanceof Error && err.name === "TimeoutError") {
-          throw err;
-        }
-        throw new DeckFormatError("Deck response was not valid JSON", {
-          cause: err,
-        });
-      }
-
-      return parseDeck(data);
+      return parseDeck(await readJson(res));
     } catch (err) {
       if (err instanceof DeckError) throw err;
-      if (err instanceof Error && err.name === "TimeoutError") {
-        throw new DeckRequestError(
-          `Deck request timed out after ${TIMEOUT_MS} ms`,
-          { cause: err },
-        );
-      }
+      if (isTimeoutError(err)) throw timeoutError(err);
+
       const reason = err instanceof Error ? err.message : String(err);
       throw new DeckRequestError(`Deck request failed: ${reason}`, {
         cause: err,

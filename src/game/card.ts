@@ -23,7 +23,7 @@ export interface Card {
   value: Value;
 }
 
-export const BLACKJACK = 21;
+export const BLACKJACK_SCORE = 21;
 
 export const SUIT_SYMBOLS: Record<Suit, string> = {
   HEARTS: "H",
@@ -32,30 +32,41 @@ export const SUIT_SYMBOLS: Record<Suit, string> = {
   DIAMONDS: "D",
 };
 const FACE_VALUES: ReadonlySet<Value> = new Set<Value>(["J", "Q", "K"]);
-const ACE_VALUE = 11;
 const FACE_CARD_VALUE = 10;
+const ACE_VALUE = 11;
+type CardRecord = { suit?: unknown; value?: unknown };
+
+const isCardRecord = (value: unknown): value is CardRecord =>
+  typeof value === "object" && value !== null;
 
 export const cardValue = (card: Card): number => {
   if (card.value === "A") return ACE_VALUE;
   if (FACE_VALUES.has(card.value)) return FACE_CARD_VALUE;
+
   return Number(card.value);
 };
 
 export const score = (cards: readonly Card[]): number =>
-  cards.reduce((sum, c) => sum + cardValue(c), 0);
+  cards.reduce((sum, card) => sum + cardValue(card), 0);
 
 export const isBust = (cards: readonly Card[]): boolean =>
-  score(cards) > BLACKJACK;
+  score(cards) > BLACKJACK_SCORE;
 
-/** Blackjack only counts on the initial two-card hand. */
+/** A blackjack is exactly two cards with a total score of 21. */
 export const isBlackjack = (cards: readonly Card[]): boolean =>
-  cards.length === 2 && score(cards) === BLACKJACK;
+  cards.length === 2 && score(cards) === BLACKJACK_SCORE;
 
 export const formatCard = (card: Card): string =>
   `${SUIT_SYMBOLS[card.suit]}${card.value}`;
 
-/** Whether `value` has a valid suit and card value; the single definition of a valid card. */
+/** Returns whether an unknown value has the shape of a valid card. */
 export const isCard = (value: unknown): value is Card => {
-  const { suit, value: rank } = (value ?? {}) as Record<string, unknown>;
-  return SUITS.includes(suit as Suit) && VALUES.includes(rank as Value);
+  if (!isCardRecord(value)) return false;
+
+  const { suit, value: rank } = value;
+
+  return (
+    SUITS.some((validSuit) => validSuit === suit) &&
+    VALUES.some((validValue) => validValue === rank)
+  );
 };

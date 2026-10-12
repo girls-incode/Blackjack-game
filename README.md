@@ -18,7 +18,7 @@ Two players: the Player and the Dealer. One round is played with a deck fetched 
 ### Card values
 
 - Face cards (J, Q, K) are worth 10.
-- Aces (A) are always worth 11.
+- Aces (A) are worth 11.
 - Number cards are worth their number.
 
 ### Rules

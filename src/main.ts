@@ -1,4 +1,4 @@
-import { HttpDeckSource } from "./deckSource/deckSource";
+import { type DeckSource, HttpDeckSource } from "./deckSource/deckSource";
 import { ConfigError, handleError } from "./errors";
 import { formatResult } from "./game/format";
 import { createStandardBlackjackGame } from "./game/standardBlackjackGame";
@@ -8,6 +8,7 @@ const DEFAULT_DECK_URL = "https://sandbox.getunleash.io/blackjack/shuffle";
 type RunOptions = {
   fetchFn?: typeof fetch;
   log?: (message: string) => void;
+  deckSource?: DeckSource;
 };
 
 const resolveDeckUrl = (
@@ -24,11 +25,10 @@ const resolveDeckUrl = (
 export const run = async (
   args = process.argv.slice(2),
   env: NodeJS.ProcessEnv = process.env,
-  { fetchFn = fetch, log = console.log }: RunOptions = {},
+  { fetchFn = fetch, log = console.log, deckSource }: RunOptions = {},
 ): Promise<void> => {
-  const url = resolveDeckUrl(args, env);
-
-  const source = new HttpDeckSource(url, fetchFn);
+  const source =
+    deckSource ?? new HttpDeckSource(resolveDeckUrl(args, env), fetchFn);
   const deck = await source.getDeck();
   const gameResult = createStandardBlackjackGame().play(deck);
   log(formatResult(gameResult));

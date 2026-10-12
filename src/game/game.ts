@@ -1,15 +1,15 @@
 import { type Card, isBlackjack, isBust, score } from "./card";
 import { Deck } from "./deck";
-import type { DrawStrategy } from "./strategy";
+import type { CardDrawStrategy } from "./strategy";
 
-/** Who takes part in a game: a name plus the rule that decides when they draw. */
-export interface Player {
+/** Defines a player's name and card-drawing strategy for a game. */
+export interface PlayerConfig {
   name: string;
-  strategy: DrawStrategy;
+  strategy: CardDrawStrategy;
 }
 
-/** A player's hand during and after a game. */
-export interface Participant {
+/** Stores a player's name and cards during and after a round. */
+export interface PlayerState {
   name: string;
   cards: Card[];
 }
@@ -17,21 +17,21 @@ export interface Participant {
 /** Outcome of a game: the winner's name and both final hands. */
 export interface GameResult {
   winner: string;
-  dealer: Participant;
-  player: Participant;
+  dealer: PlayerState;
+  player: PlayerState;
 }
 
 /**
  * Plays one round of blackjack between a player and a dealer.
  *
  * The class only knows the rules of a round (dealing, blackjack, bust, who wins).
- * *When* each side draws is decided by the `DrawStrategy` of its `Player`,
+ * *When* each side draws is decided by the `CardDrawStrategy` in its `PlayerConfig`,
  * so draw rules can change without touching this class.
  */
 export class Game {
   constructor(
-    private readonly player: Player,
-    private readonly dealer: Player,
+    private readonly playerConfig: PlayerConfig,
+    private readonly dealerConfig: PlayerConfig,
   ) {}
 
   /**
@@ -48,42 +48,54 @@ export class Game {
    */
   play(cards: readonly Card[]): GameResult {
     const deck = new Deck(cards);
-    const player = this.deal(this.player.name, deck);
-    const dealer = this.deal(this.dealer.name, deck);
-    const result = (winner: Participant): GameResult => ({
+    const playerState = this.deal(this.playerConfig.name, deck);
+    const dealerState = this.deal(this.dealerConfig.name, deck);
+    const result = (winner: PlayerState): GameResult => ({
       winner: winner.name,
-      dealer,
-      player,
+      dealer: dealerState,
+      player: playerState,
     });
 
     // Dealer wins when both have blackjack.
-    if (isBlackjack(dealer.cards)) return result(dealer);
-    if (isBlackjack(player.cards)) return result(player);
+    if (isBlackjack(dealerState.cards)) return result(dealerState);
+    if (isBlackjack(playerState.cards)) return result(playerState);
 
-    this.drawUntilDone(player, this.player.strategy, score(dealer.cards), deck);
-    if (isBust(player.cards)) return result(dealer);
+    this.drawUntilDone(
+      playerState,
+      this.playerConfig,
+      score(dealerState.cards),
+      deck,
+    );
+    if (isBust(playerState.cards)) return result(dealerState);
 
-    this.drawUntilDone(dealer, this.dealer.strategy, score(player.cards), deck);
-    return result(isBust(dealer.cards) ? player : dealer);
+    this.drawUntilDone(
+      dealerState,
+      this.dealerConfig,
+      score(playerState.cards),
+      deck,
+    );
+    return result(isBust(dealerState.cards) ? playerState : dealerState);
   }
 
   /** Deals the opening two cards. */
-  private deal(name: string, deck: Deck): Participant {
+  private deal(name: string, deck: Deck): PlayerState {
     return { name, cards: [deck.draw(), deck.draw()] };
   }
 
-  /** Gives `who` cards from the deck until their strategy says stop or they bust. */
+  /** Gives the player cards until their strategy says stop or they bust. */
   private drawUntilDone(
-    who: Participant,
-    strategy: DrawStrategy,
+    state: PlayerState,
+    config: PlayerConfig,
     opponentScore: number,
     deck: Deck,
   ): void {
+    const currentHand = state.cards;
+
     while (
-      !isBust(who.cards) &&
-      strategy.shouldDraw(who.cards, opponentScore)
+      !isBust(currentHand) &&
+      config.strategy.shouldDraw(currentHand, opponentScore)
     ) {
-      who.cards.push(deck.draw());
+      currentHand.push(deck.draw());
     }
   }
 }
